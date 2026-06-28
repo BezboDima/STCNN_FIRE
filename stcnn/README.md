@@ -132,24 +132,29 @@ initialize_netD(netD, '/path/to/NetD_epoch-99.pth')
 
 ## Training
 
+Both `--netG_path` and `--netD_path` are required — they point to the pretrained frame-prediction network weights.
+
 **Stage 1 — Pre-train on DAVIS** (optional, helps initialization):
 ```bash
-python train.py --dataset davis --frame_nums 4
+python train.py \
+  --dataset davis --frame_nums 4 \
+  --netG_path /path/to/NetG_epoch-99.pth \
+  --netD_path /path/to/NetD_epoch-99.pth
 ```
 
 **Stage 2 — Fine-tune on FIRE**:
 ```bash
-python train.py --dataset fire --frame_nums 4
+python train.py \
+  --dataset fire --frame_nums 4 \
+  --netG_path /path/to/NetG_epoch-99.pth \
+  --netD_path /path/to/NetD_epoch-99.pth
 ```
 
 **Resume from checkpoint**:
 ```bash
-python train.py --dataset fire --frame_nums 4 --resume_epoch 100
-```
-
-**Load pretrained segmentation weights**:
-```bash
-python train.py --dataset fire --frame_nums 4 --pretrained_seg /path/to/checkpoint.pth
+python train.py --dataset fire --frame_nums 4 --resume_epoch 100 \
+  --netG_path /path/to/NetG_epoch-99.pth \
+  --netD_path /path/to/NetD_epoch-99.pth
 ```
 
 | Argument | Default | Description |
@@ -157,6 +162,8 @@ python train.py --dataset fire --frame_nums 4 --pretrained_seg /path/to/checkpoi
 | `--dataset` | `fire` | `fire` (train+val) or `davis` (train only) |
 | `--frame_nums` | `4` | Number of temporal context frames |
 | `--resume_epoch` | `0` | Epoch to resume from (0 = fresh start) |
+| `--netG_path` | required | Pretrained frame-prediction generator weights |
+| `--netD_path` | required | Pretrained frame-prediction discriminator weights |
 | `--pretrained_seg` | `None` | Path to pretrained segmentation checkpoint |
 
 Checkpoints are saved every 5 epochs to `{save_root_dir}/{model_name}/`.
@@ -166,14 +173,17 @@ Checkpoints are saved every 5 epochs to `{save_root_dir}/{model_name}/`.
 ## Evaluation
 
 ```bash
-python test.py
+python test.py \
+  --model_path /path/to/STUNET_UNET_DAVIS_FIRE4-94.pth \
+  --model_name STUNET_UNET_FIRE4
 ```
 
-Update the two variables at the top of `test.py`:
-```python
-model_path = "/path/to/STUNET_UNET_DAVIS_FIRE4-94.pth"
-model_name  = "STUNET_UNET_FIRE4"
-```
+| Argument | Default | Description |
+|---|---|---|
+| `--model_path` | required | Path to checkpoint `.pth` file |
+| `--model_name` | `STUNET_UNET_FIRE4` | Name used for the output directory |
+| `--frame_nums` | `4` | Must match training value |
+| `--thresholds` | `0.1…0.9` | Space-separated list of thresholds to evaluate |
 
 The script evaluates over multiple thresholds `[0.1, 0.2, ..., 0.9]` and reports:
 

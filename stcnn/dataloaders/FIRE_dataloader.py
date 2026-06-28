@@ -1,17 +1,20 @@
 from __future__ import division
 
 import os
-import numpy as np
-import cv2
-import torch
 import re
 import pickle
 import random
-import imageio
+
 import cv2
+import imageio
+import numpy as np
 import skimage.morphology as sm
+import torch
+import torchvision.transforms as tvtransforms
 from PIL import Image
+from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
+
 from dataloaders import custom_transforms as tr
 
 class FIREDatasetGeneral(Dataset):
@@ -205,15 +208,6 @@ class FIREDatasetSingle(Dataset):
 
 
 
-import os, re
-import numpy as np
-import cv2
-import imageio
-import torch
-from torch.utils.data import Dataset
-from dataloaders import custom_transforms as tr  # assumes dict-aware ToTensor in your project
-
-
 class FIREDataset(Dataset):
     def __init__(self, inputRes=None,
                  samples_path="/home/r56x196/Data/Mask_Data",
@@ -351,14 +345,6 @@ class FIREDataset(Dataset):
 
         return sample
 
-
-
-import os
-import re
-import numpy as np
-from PIL import Image
-from torch.utils.data import Dataset
-from sklearn.model_selection import train_test_split
 
 
 class FIREDatasetSegmentation(Dataset):
@@ -500,16 +486,6 @@ class FIREDatasetSegmentation(Dataset):
             raise
 
 
-import os
-import re
-import cv2
-import numpy as np
-import imageio
-from torch.utils.data import Dataset
-import torchvision.transforms as tr
-from sklearn.model_selection import train_test_split
-
-
 class FIREDatasetRandom(Dataset):
     def __init__(self, inputRes=None,
                  samples_path="/home/r56x196/Data/Mask_Data",
@@ -521,7 +497,7 @@ class FIREDatasetRandom(Dataset):
 
         self.transform = transform
         self.inputRes = inputRes
-        self.toTensor = tr.ToTensor()
+        self.toTensor = tvtransforms.ToTensor()
         self.num_frame = num_frame
         self.mode = mode
 

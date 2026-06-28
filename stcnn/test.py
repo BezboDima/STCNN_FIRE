@@ -17,10 +17,6 @@ from network.joint_pred_seg import FramePredDecoder, FramePredEncoder
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# UPDATE THESE PATHS
-model_path = "/home/r56x196/STCNN/output/STUNET_UNET_DAVIS_FIRE4/STUNET_UNET_DAVIS_FIRE4-94.pth"
-model_name = "STUNET_UNET_FIRE4"
-
 
 def load_stunet_model(model_path, num_frame, device):
     """
@@ -90,17 +86,19 @@ def load_stunet_model(model_path, num_frame, device):
     return net
 
 
-def main(frame, epochs, test_thresholds=None):
+def main(frame, epochs, model_path, model_name, test_thresholds=None):
     """
     Main testing function for ST-UNet model
 
     Args:
         frame: Number of input frames
         epochs: Epoch number (for naming)
+        model_path: Path to checkpoint .pth file
+        model_name: Name used for output directory
         test_thresholds: List of thresholds to test
     """
     if test_thresholds is None:
-        test_thresholds = [0.5]  # Default threshold
+        test_thresholds = [0.5]
 
     num_frame = frame
     num_epochs = epochs
@@ -464,6 +462,21 @@ def save_comparison_grid(examples_dir, num_examples=9):
 
 
 if __name__ == "__main__":
-    # Test with multiple thresholds
-    test_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-    main(frame=4, epochs=200, test_thresholds=test_thresholds)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Evaluate ST-UNet on FIRE dataset")
+    parser.add_argument("--model_path", type=str, required=True,
+                        help="Path to checkpoint .pth file")
+    parser.add_argument("--model_name", type=str, default="STUNET_UNET_FIRE4",
+                        help="Model name used for output directory")
+    parser.add_argument("--frame_nums", type=int, default=4,
+                        help="Number of temporal input frames (must match training)")
+    parser.add_argument("--epochs", type=int, default=200,
+                        help="Epoch label used in output filenames")
+    parser.add_argument("--thresholds", nargs="+", type=float,
+                        default=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+                        help="Segmentation thresholds to evaluate")
+    args = parser.parse_args()
+
+    main(frame=args.frame_nums, epochs=args.epochs, test_thresholds=args.thresholds,
+         model_path=args.model_path, model_name=args.model_name)

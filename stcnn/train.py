@@ -86,21 +86,14 @@ def main(args):
     # ------------------------------
     # Discriminator (for temporal NetG supervision)
     netD = Inception3(num_classes=1, aux_logits=False, transform_input=True)
-    initialize_netD(netD, os.path.join(
-        '/home/r56x196/ondemand/data/sys/myjobs/projects/default/4/output/FramePredModels/frame_nums_4',
-        'NetD_epoch-99.pth'))
+    initialize_netD(netD, args.netD_path)
 
     # Temporal prediction branch (pretrained)
     pred_enc = FramePredEncoder(frame_nums=num_frame)
     pred_dec = FramePredDecoder()
 
     print("Loading weights from pretrained NetG")
-    pretrained_netG_dict = torch.load(
-        os.path.join(
-            '/home/r56x196/ondemand/data/sys/myjobs/projects/default/4/output/FramePredModels/frame_nums_4',
-            'NetG_epoch-99.pth'),
-        map_location=device
-    )
+    pretrained_netG_dict = torch.load(args.netG_path, map_location=device)
 
     # Load pred_enc weights
     model_dict = pred_enc.state_dict()
@@ -145,8 +138,7 @@ def main(args):
             print(f"Warning: Pretrained checkpoint not found at {args.pretrained_seg}")
             print("Continuing without pretrained segmentation weights")
     elif resume_epoch > 0:
-        # Try to load from standard resume path
-        resume_path = os.path.join("/home/r56x196/STCNN/output/STUNET_UNET_DAVIS4/STUNET_UNET_DAVIS4-199.pth")
+        resume_path = os.path.join(save_model_dir, f'{modelName}-{resume_epoch - 1}.pth')
         if os.path.exists(resume_path):
             print(f"Resuming from: {resume_path}")
             checkpoint = torch.load(resume_path, map_location=device)
@@ -548,6 +540,12 @@ if __name__ == "__main__":
 
     parser.add_argument("--pretrained_seg", type=str, default=None,
                         help="Path to pretrained segmentation checkpoint")
+
+    parser.add_argument("--netG_path", type=str, required=True,
+                        help="Path to pretrained NetG checkpoint (temporal prediction branch, e.g. NetG_epoch-99.pth)")
+
+    parser.add_argument("--netD_path", type=str, required=True,
+                        help="Path to pretrained NetD checkpoint (discriminator, e.g. NetD_epoch-99.pth)")
 
     args = parser.parse_args()
     main(args)
